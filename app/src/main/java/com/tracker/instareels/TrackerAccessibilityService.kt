@@ -10,10 +10,8 @@ import android.os.Looper
 import android.os.SystemClock
 import android.provider.Settings
 import android.view.Gravity
-import android.view.View
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
-import android.view.accessibility.AccessibilityNodeInfo
 import android.widget.TextView
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -25,8 +23,8 @@ class TrackerAccessibilityService : AccessibilityService() {
     private var overlayBadge: TextView? = null
     private var isOverlayAttached = false
 
-    private var lastScrollTime = 0L
-    private var lastReelTime = 0L
+    private var lastPostScrollTime = 0L
+    private var lastReelScrollTime = 0L
     private var sessionStartTime = 0L
     private var isAppActive = false
 
@@ -78,16 +76,19 @@ class TrackerAccessibilityService : AccessibilityService() {
             val currentTime = SystemClock.elapsedRealtime()
             val className = event.className?.toString() ?: ""
 
-            // Reels Vertical ViewPager detect cheyadam (Duplicate scroll lekunda min 1.5s gap play detection)
+            // Reels Viewer detection (Vertical ViewPager)
             if (className.contains("ViewPager", ignoreCase = true)) {
-                if (currentTime - lastReelTime > 1500) {
-                    lastReelTime = currentTime
+                if (currentTime - lastReelScrollTime > 1500) {
+                    lastReelScrollTime = currentTime
                     incrementCount("reels")
                 }
-            } else if (className.contains("RecyclerView", ignoreCase = true) || className.contains("ListView", ignoreCase = true)) {
-                // Home feed post scroll
-                if (currentTime - lastScrollTime > 1200) {
-                    lastScrollTime = currentTime
+            } 
+            // Home Feed Posts detection (RecyclerView / ListView)
+            else if (className.contains("RecyclerView", ignoreCase = true) || 
+                       className.contains("ListView", ignoreCase = true)) {
+                // Minimum 2.2 seconds gap vunte posts jump / rapid duplicate counts padavu
+                if (currentTime - lastPostScrollTime > 2200) {
+                    lastPostScrollTime = currentTime
                     incrementCount("posts")
                 }
             }

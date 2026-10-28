@@ -1,4 +1,4 @@
-name: Build and Release APK
+name: Build and Release Signed APK
 
 on:
   push:
@@ -24,19 +24,21 @@ jobs:
         with:
           gradle-version: '8.1'
 
-      - name: Build Debug APK
+      - name: Build APK
         run: gradle assembleDebug --no-daemon --stacktrace
 
-      - name: Prepare APK File
+      - name: Sign APK with Keystore (Bypass Play Protect Warning)
         run: |
+          keytool -genkey -v -keystore release.keystore -alias trackerkey -keyalg RSA -keysize 2048 -validity 10000 -storepass 123456 -keypass 123456 -dname "CN=InstaTracker, OU=Mobile, O=Apps, L=Hyd, S=TS, C=IN"
+          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore release.keystore -storepass 123456 -keypass 123456 app/build/outputs/apk/debug/*.apk trackerkey
           mkdir -p output
           cp app/build/outputs/apk/debug/*.apk output/InstaReelsTracker.apk
 
-      - name: Publish APK to GitHub Release
+      - name: Publish Signed APK
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: latest
-          name: "InstaReels Tracker Working APK"
+          tag_name: v2.3
+          name: "InstaReels Tracker Signed APK v2.3"
           files: output/InstaReelsTracker.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
