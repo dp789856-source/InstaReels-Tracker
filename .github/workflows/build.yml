@@ -22,25 +22,21 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
         with:
-          gradle-version: '8.4'
+          gradle-version: '8.1'
 
-      - name: Generate Gradle Wrapper
-        run: gradle wrapper --gradle-version 8.4 --distribution-type bin
+      - name: Build Debug APK
+        run: gradle assembleDebug --no-daemon --stacktrace
 
-      - name: Grant Execute Permission
-        run: chmod +x gradlew
+      - name: Prepare APK File
+        run: |
+          mkdir -p output
+          cp app/build/outputs/apk/debug/*.apk output/InstaReelsTracker.apk
 
-      - name: Build Debug APK with Wrapper
-        run: ./gradlew assembleDebug --no-daemon --no-configuration-cache --stacktrace
-
-      - name: Rename APK
-        run: mv app/build/outputs/apk/debug/*.apk InstaReelsTracker.apk
-
-      - name: Create GitHub Release
+      - name: Publish APK to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v2.2
-          name: "InstaReels Tracker APK v2.2"
-          files: InstaReelsTracker.apk
+          tag_name: latest
+          name: "InstaReels Tracker Working APK"
+          files: output/InstaReelsTracker.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
