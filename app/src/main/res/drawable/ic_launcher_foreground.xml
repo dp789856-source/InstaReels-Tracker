@@ -1,0 +1,50 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Instagram Gradient Glow Outer Ring -->
+    <path
+        android:pathData="M54,14 A40,40 0 1 1 53.99,14"
+        android:strokeWidth="5"
+        android:strokeLineCap="round">
+        <aapt:attr name="android:strokeColor">
+            <gradient
+                android:startX="14"
+                android:startY="14"
+                android:endX="94"
+                android:endY="94"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#FF833AB4"/>
+                <item android:offset="0.5" android:color="#FFFD1D1D"/>
+                <item android:offset="1.0" android:color="#FFFCB045"/>
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Center Reels Clap / Video Play Shape -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M48,38 L68,54 L48,70 Z" />
+
+    <!-- Timer / Stopwatch Ticks -->
+    <path
+        android:fillColor="#00E676"
+        android:pathData="M52,24 h4 v6 h-4 z" />
+    <path
+        android:fillColor="#00E676"
+        android:pathData="M78,52 h6 v4 h-6 z" />
+    <path
+        android:fillColor="#00E676"
+        android:pathData="M52,78 h4 v6 h-4 z" />
+    <path
+        android:fillColor="#00E676"
+        android:pathData="M24,52 h6 v4 h-6 z" />
+
+    <!-- Tiny Activity Pulse Dot -->
+    <path
+        android:fillColor="#00E676"
+        android:pathData="M70,36 A4,4 0 1 1 69.99,36" />
+</vector>
