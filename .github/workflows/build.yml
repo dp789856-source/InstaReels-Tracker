@@ -1,4 +1,4 @@
-name: Build and Release Signed APK
+name: Build and Release Valid Signed APK
 
 on:
   push:
@@ -19,26 +19,38 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: Setup Android SDK Build-Tools
+        uses: android-actions/setup-android@v3
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: '8.1'
 
-      - name: Build APK
-        run: gradle assembleDebug --no-daemon --stacktrace
+      - name: Build Unsigned APK
+        run: gradle assembleRelease --no-daemon --stacktrace
 
-      - name: Sign APK with Keystore (Bypass Play Protect Warning)
+      - name: Align and Sign APK with v2 Scheme (Fix Invalid Package)
         run: |
-          keytool -genkey -v -keystore release.keystore -alias trackerkey -keyalg RSA -keysize 2048 -validity 10000 -storepass 123456 -keypass 123456 -dname "CN=InstaTracker, OU=Mobile, O=Apps, L=Hyd, S=TS, C=IN"
-          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore release.keystore -storepass 123456 -keypass 123456 app/build/outputs/apk/debug/*.apk trackerkey
-          mkdir -p output
-          cp app/build/outputs/apk/debug/*.apk output/InstaReelsTracker.apk
+          BUILD_TOOLS_DIR=$(ls -d $ANDROID_HOME/build-tools/* | tail -n 1)
+          
+          # Keystore generate cheyadam
+          keytool -genkey -v -keystore release.keystore -alias trackerkey -keyalg RSA -keysize 2048 -validity 10000 -storepass 123456 -keypass 123456 -dname "CN=InstaTracker, OU=Mobile, O=Apps, L=Hyd, S=AP, C=IN"
+          
+          # Zipalign process
+          $BUILD_TOOLS_DIR/zipalign -v -p 4 app/build/outputs/apk/release/app-release-unsigned.apk app-aligned.apk
+          
+          # Official APK Signature Scheme v2 signing
+          $BUILD_TOOLS_DIR/apksigner sign --ks release.keystore --ks-pass pass:123456 --key-pass pass:123456 --ks-key-alias trackerkey --out InstaReelsTracker.apk app-aligned.apk
+          
+          # Verify signature
+          $BUILD_TOOLS_DIR/apksigner verify InstaReelsTracker.apk
 
-      - name: Publish Signed APK
+      - name: Publish Valid APK
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v2.3
-          name: "InstaReels Tracker Signed APK v2.3"
-          files: output/InstaReelsTracker.apk
+          tag_name: v2.4
+          name: "InstaReels Tracker Valid APK v2.4"
+          files: InstaReelsTracker.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
