@@ -19,9 +19,6 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Setup Android SDK Build-Tools
-        uses: android-actions/setup-android@v3
-
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
         with:
@@ -30,27 +27,29 @@ jobs:
       - name: Build Unsigned APK
         run: gradle assembleRelease --no-daemon --stacktrace
 
-      - name: Align and Sign APK with v2 Scheme (Fix Invalid Package)
+      - name: Align and Sign APK using Pre-installed SDK Build-Tools
         run: |
-          BUILD_TOOLS_DIR=$(ls -d $ANDROID_HOME/build-tools/* | tail -n 1)
-          
-          # Keystore generate cheyadam
-          keytool -genkey -v -keystore release.keystore -alias trackerkey -keyalg RSA -keysize 2048 -validity 10000 -storepass 123456 -keypass 123456 -dname "CN=InstaTracker, OU=Mobile, O=Apps, L=Hyd, S=AP, C=IN"
-          
-          # Zipalign process
-          $BUILD_TOOLS_DIR/zipalign -v -p 4 app/build/outputs/apk/release/app-release-unsigned.apk app-aligned.apk
-          
-          # Official APK Signature Scheme v2 signing
-          $BUILD_TOOLS_DIR/apksigner sign --ks release.keystore --ks-pass pass:123456 --key-pass pass:123456 --ks-key-alias trackerkey --out InstaReelsTracker.apk app-aligned.apk
-          
-          # Verify signature
-          $BUILD_TOOLS_DIR/apksigner verify InstaReelsTracker.apk
+          # Ubuntu runner లో ఇప్పటికే ఉన్న తాజా Android Build-Tools పాత్ గుర్తించడం
+          BUILD_TOOLS_PATH=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -n 1)
+          echo "Using Android Build Tools at: $BUILD_TOOLS_PATH"
 
-      - name: Publish Valid APK
+          # Signing Keystore రూపొందించడం
+          keytool -genkey -v -keystore release.keystore -alias trackerkey -keyalg RSA -keysize 2048 -validity 10000 -storepass 123456 -keypass 123456 -dname "CN=InstaTracker, OU=Mobile, O=Apps, L=Hyd, S=AP, C=IN"
+
+          # 4-byte Zipalign (Modern Android alignment)
+          $BUILD_TOOLS_PATH/zipalign -v -p 4 app/build/outputs/apk/release/app-release-unsigned.apk app-aligned.apk
+
+          # Official Android APK Signature Scheme v2 & v3 Signing (Bypasses 'Invalid package' error)
+          $BUILD_TOOLS_PATH/apksigner sign --ks release.keystore --ks-pass pass:123456 --key-pass pass:123456 --ks-key-alias trackerkey --out InstaReelsTracker.apk app-aligned.apk
+
+          # Verify Signature
+          $BUILD_TOOLS_PATH/apksigner verify --verbose InstaReelsTracker.apk
+
+      - name: Publish Valid Signed APK
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v2.4
-          name: "InstaReels Tracker Valid APK v2.4"
+          tag_name: v2.5
+          name: "InstaReels Tracker Signed APK v2.5"
           files: InstaReelsTracker.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
