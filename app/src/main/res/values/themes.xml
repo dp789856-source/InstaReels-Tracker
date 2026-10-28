@@ -1,0 +1,7 @@
+<resources>
+    <style name="Theme.InstaReelsTracker" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">#2979FF</item>
+        <item name="colorPrimaryDark">#1C54B2</item>
+        <item name="colorAccent">#00E676</item>
+    </style>
+</resources>

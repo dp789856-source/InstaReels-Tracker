@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">InstaReels Tracker</string>
+    <string name="accessibility_desc">Tracks Instagram Reels play and Posts count with floating stats.</string>
+</resources>
